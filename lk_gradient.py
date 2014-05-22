@@ -4,12 +4,13 @@
 Clustering people algorithm which use Lucas-Kanade as a Tracker
 ====================
 
-usage: python lk_cluster video_file
+usage: python lk_gradient video_file
 
 '''
 
 import numpy as np
 import cv2
+import cv
 import video
 import pylab as pl
 import sys
@@ -52,7 +53,7 @@ count_in = 0
 count_out = 0
 
 
-def cluster_features(X, clustered_pixels, vis2, angles):
+def cluster_features(X, clustered_pixels, vis2, angles, writer):
     global count_in, count_out, temporal_in, temporal_out
     del clustered_pixels[0]
     vis3 = vis2.copy()
@@ -143,6 +144,7 @@ def cluster_features(X, clustered_pixels, vis2, angles):
     #Visualize counting on frame
     draw_str(vis2, (20, 20), 'count in: %d' % count_in)
     draw_str(vis2, (130, 20), 'count out: %d' % count_out)
+    writer.write(vis2)
     cv2.imshow("person detected", vis2)
     cv2.imshow("group people", vis3)
     cv2.waitKey(0)
@@ -158,14 +160,13 @@ class App:
 
     def run(self):
         cont = 0
+        writer = cv2.VideoWriter("test.avi",cv.CV_FOURCC('P','I','M','1'),25,(640,480))
         while True:
             cont += 1
             ret, frame = self.cam.read()
             frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             vis = frame.copy()
             vis2 = frame.copy()
-            #fy = np.array([0])
-            #fx = np.array([0])
             input_set = np.array([1,1])
             angles = np.array([0])
             clustered_pixels = []
@@ -207,7 +208,11 @@ class App:
                 cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False, (0, 255, 0))
                 cv2.imshow('lk_track', vis)
                 if (len(input_set)) > 2:
-                    cluster_features(input_set, clustered_pixels, vis2, angles)
+                    cluster_features(input_set, clustered_pixels, vis2, angles, writer)
+                else:
+                    draw_str(vis2, (20, 20), 'count in: %d' % count_in)
+                    draw_str(vis2, (130, 20), 'count out: %d' % count_out)
+                    writer.write(vis2)
             if self.frame_idx % self.detect_interval == 0:
                 mask = np.zeros_like(frame_gray)
                 mask[:] = 255
@@ -224,8 +229,6 @@ class App:
             ch = 0xFF & cv2.waitKey(0)
             if ch == 27:
                 break
-            #if ch & 0xFF == ord("p"):
-                #cluster_features(input_set, clustered_pixels, vis2)
 
 
 def main():

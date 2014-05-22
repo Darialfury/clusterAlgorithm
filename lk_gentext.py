@@ -52,7 +52,7 @@ count_in = 0
 count_out = 0
 
 
-def cluster_features(X, clustered_pixels, vis2, angles):
+def cluster_features(X, clustered_pixels, vis2, angles, frame_number):
     global count_in, count_out, temporal_in, temporal_out
     del clustered_pixels[0]
     vis3 = vis2.copy()
@@ -133,11 +133,19 @@ def cluster_features(X, clustered_pixels, vis2, angles):
                 people_out.append((row[1],row[2]))
         #check how many entered or got out
         if len(temporal_in) > len(people_in):
-            count_in += len(temporal_in) - len(people_in)
+            instant_count = len(temporal_in) - len(people_in)
+            count_in += instant_count
+            txt_file = open('dsi_1.txt','a')
+            txt_file.write(str(frame_number) + "," + str(instant_count) + "," + '0\n')
+            txt_file.close()
         temporal_in = people_in
         people_in = []
         if len(temporal_out) > len(people_out):
-            count_out += len(temporal_out) - len(people_out)
+            instant_count = len(temporal_out) - len(people_out)
+            count_out += instant_count
+            txt_file = open('dsi_1.txt','a')
+            txt_file.write(str(frame_number)+ "," + "0" + "," + str(instant_count) + '\n')
+            txt_file.close()
         temporal_out = people_out
         people_out = []
     #Visualize counting on frame
@@ -146,6 +154,7 @@ def cluster_features(X, clustered_pixels, vis2, angles):
     cv2.imshow("person detected", vis2)
     cv2.imshow("group people", vis3)
     cv2.waitKey(0)
+
 
 
 class App:
@@ -170,7 +179,6 @@ class App:
             angles = np.array([0])
             clustered_pixels = []
             clustered_pixels.append((1,1))
-            
             if len(self.tracks) > 0:
                 img0, img1 = self.prev_gray, frame_gray
                 p0 = np.float32([tr[-1] for tr in self.tracks]).reshape(-1, 1, 2)
@@ -207,7 +215,7 @@ class App:
                 cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False, (0, 255, 0))
                 cv2.imshow('lk_track', vis)
                 if (len(input_set)) > 2:
-                    cluster_features(input_set, clustered_pixels, vis2, angles)
+                    cluster_features(input_set, clustered_pixels, vis2, angles, cont)
             if self.frame_idx % self.detect_interval == 0:
                 mask = np.zeros_like(frame_gray)
                 mask[:] = 255
