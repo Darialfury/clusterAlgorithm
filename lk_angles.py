@@ -141,11 +141,11 @@ def cluster_features(X, clustered_pixels, vis2, angles):
         temporal_out = people_out
         people_out = []
     #Visualize counting on frame
-    draw_str(vis2, (20, 20), 'count in: %d' % count_in)
-    draw_str(vis2, (130, 20), 'count out: %d' % count_out)
+    string = "Counter goes: In = " + str(count_in) + " Out = " +  str(count_out)
+    cv2. putText(vis2, string , (20, vis2.shape[0] - 20),cv2.FONT_HERSHEY_PLAIN,2.3, (255, 255, 255))
     cv2.imshow("person detected", vis2)
     cv2.imshow("group people", vis3)
-    cv2.waitKey(0)
+    cv2.waitKey(5)
 
 
 class App:
@@ -221,7 +221,7 @@ class App:
             self.frame_idx += 1
             self.prev_gray = frame_gray
 
-            ch = 0xFF & cv2.waitKey(0)
+            ch = 0xFF & cv2.waitKey(10)
             if ch == 27:
                 break
             #if ch & 0xFF == ord("p"):
